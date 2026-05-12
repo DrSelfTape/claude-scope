@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.3 — 2026-05-12
+
+- Subdivide chapters longer than 6 minutes into ~4-minute sub-segments so
+  silence detection no longer leaves a 14-minute "Segment 3" when the
+  speaker has a long uninterrupted middle section. Real chapter titles
+  (yt-dlp / description sources) are preserved on the first sub-slice and
+  suffixed with " (cont.)" on later ones.
+
 ## 0.1.2 — 2026-05-12
 
 - Chapter detection no longer degrades to a single "Full video" block on tightly

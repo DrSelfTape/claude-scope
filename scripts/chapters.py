@@ -211,6 +211,53 @@ def from_silence(
     return chapters
 
 
+# ---------- Post-processing: subdivide long chapters ----------
+
+def subdivide_long_chapters(
+    chapters: list[Chapter],
+    max_chapter_seconds: float = 360.0,
+    target_seconds: float = 240.0,
+) -> list[Chapter]:
+    """Split any chapter longer than `max_chapter_seconds` into equal sub-segments.
+
+    Silence detection can leave a single chapter spanning many minutes when the
+    speaker has a long uninterrupted run. We post-process to enforce a soft
+    upper bound, subdividing internally using even-time-split.
+
+    Real titles (from yt-dlp / description sources) are preserved on the first
+    sub-slice and suffixed with " (cont.)" on subsequent slices. Generic
+    "Segment N" labels are renumbered after expansion.
+    """
+    expanded: list[Chapter] = []
+    for ch in chapters:
+        span = ch.end - ch.start
+        if span <= max_chapter_seconds:
+            expanded.append(ch)
+            continue
+        n = max(2, round(span / target_seconds))
+        chunk = span / n
+        is_generic = ch.title.startswith("Segment") or ch.title == "Full video"
+        for i in range(n):
+            sub_start = ch.start + i * chunk
+            sub_end = ch.start + (i + 1) * chunk if i < n - 1 else ch.end
+            if is_generic:
+                title = ch.title  # renumbered below
+            else:
+                title = ch.title if i == 0 else f"{ch.title} (cont.)"
+            expanded.append(Chapter(start=sub_start, end=sub_end, title=title))
+
+    # Renumber generic "Segment" labels sequentially.
+    seg_n = 1
+    out: list[Chapter] = []
+    for ch in expanded:
+        if ch.title.startswith("Segment") or ch.title == "Full video":
+            out.append(Chapter(start=ch.start, end=ch.end, title=f"Segment {seg_n}"))
+            seg_n += 1
+        else:
+            out.append(ch)
+    return out
+
+
 # ---------- Source 4: even-time split (last resort) ----------
 
 def from_even_split(total_duration: float, target_seconds: float = 240.0,
@@ -263,7 +310,7 @@ def detect(
     # 3. Silence detection.
     chapters = from_silence(video_path, total_duration)
     if chapters:
-        return chapters, "silence"
+        return subdivide_long_chapters(chapters), "silence"
 
     # 4. Even-time split (no signal available).
     return from_even_split(total_duration), "even-split"
