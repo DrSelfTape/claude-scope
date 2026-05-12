@@ -16,7 +16,7 @@ Usage:
 /scope https://youtu.be/<id> --start 2:15 --end 2:45 what happens here?
 ```
 
-Behind the scenes Claude runs `bash $CLAUDE_PLUGIN_ROOT/scripts/scope.py "$ARGUMENTS"` and reads every frame the script emits.
+Behind the scenes Claude runs `$CLAUDE_PLUGIN_ROOT/scripts/scope.py "$ARGUMENTS"` and reads every frame the script emits.
 
 ## Modes
 

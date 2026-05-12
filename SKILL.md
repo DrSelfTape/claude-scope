@@ -25,7 +25,7 @@ Don't invoke for: audio-only files (just transcribe directly), images (use Read)
 ## Invocation
 
 ```
-bash $CLAUDE_PLUGIN_ROOT/scripts/scope.py <URL_OR_PATH> [--mode MODE] [--start MM:SS] [--end MM:SS] [other flags]
+$CLAUDE_PLUGIN_ROOT/scripts/scope.py <URL_OR_PATH> [--mode MODE] [--start MM:SS] [--end MM:SS] [other flags]
 ```
 
 The script prints a structured block to stdout containing: working directory, mode, chapter list, frame paths with `t=MM:SS` markers, timestamped transcript, optional per-frame OCR text, and a mode-specific prompt template. **Read every frame path it prints** — those are JPEGs and render as images in your context. Then follow the mode's prompt template to write the answer.
