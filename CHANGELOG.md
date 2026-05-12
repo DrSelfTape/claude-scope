@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.4 — 2026-05-12
+
+- `--start` and `--end` now also constrain the yt-dlp download via
+  `--download-sections`, so windowed runs on long-form content actually
+  skip the unused portions instead of fetching the whole file. A 3-minute
+  window on a 4-hour video drops download time from minutes to seconds.
+- Output timestamps stay in original-video coordinates even when only a
+  slice was downloaded: frames are shifted by the window offset, the
+  duration line reads `180.0s (window 60s-240s of original)`, and a single
+  synthesized `Window` chapter replaces silence-based chapter detection on
+  windowed runs.
+
 ## 0.1.3 — 2026-05-12
 
 - Subdivide chapters longer than 6 minutes into ~4-minute sub-segments so

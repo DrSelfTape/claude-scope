@@ -27,6 +27,8 @@ class DownloadResult:
     caption_path: str | None    # absolute path to a .vtt subtitle, if any
     title: str | None
     duration: float
+    window_start: float | None = None  # original-video offset (seconds) when a slice was downloaded
+    window_end: float | None = None
 
 
 def _run(cmd: list[str], cwd: str | None = None) -> subprocess.CompletedProcess:
@@ -44,8 +46,15 @@ def _probe_duration(path: str) -> float:
         return 0.0
 
 
-def remote(url: str, out_dir: str) -> DownloadResult:
-    """Download via yt-dlp. Writes into `out_dir`."""
+def remote(url: str, out_dir: str,
+           start: float | None = None, end: float | None = None) -> DownloadResult:
+    """Download via yt-dlp. Writes into `out_dir`.
+
+    If `start` and/or `end` are set, passes `--download-sections "*S-E"` so only
+    the requested slice is fetched. The returned `DownloadResult` records the
+    window so callers can shift downstream timestamps back into original-video
+    coordinates.
+    """
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -64,8 +73,17 @@ def remote(url: str, out_dir: str) -> DownloadResult:
         "--no-playlist",
         "--restrict-filenames",
         "-o", output_tmpl,
-        url,
     ]
+
+    if start is not None or end is not None:
+        s = max(0.0, start if start is not None else 0.0)
+        # yt-dlp accepts open-ended ranges via "*START-inf" — but the safer form
+        # is to always specify both ends, so default end to a very large number
+        # when None.
+        e = end if end is not None else 99999.0
+        cmd += ["--download-sections", f"*{s}-{e}", "--force-keyframes-at-cuts"]
+
+    cmd.append(url)
     proc = _run(cmd)
     if proc.returncode != 0:
         sys.stderr.write(proc.stderr)
@@ -100,6 +118,8 @@ def remote(url: str, out_dir: str) -> DownloadResult:
         caption_path=caption_path,
         title=title,
         duration=duration,
+        window_start=start,
+        window_end=end,
     )
 
 
@@ -117,10 +137,11 @@ def local(path: str) -> DownloadResult:
     )
 
 
-def fetch(source: str, out_dir: str) -> DownloadResult:
-    """Dispatch on URL vs local path."""
+def fetch(source: str, out_dir: str,
+          start: float | None = None, end: float | None = None) -> DownloadResult:
+    """Dispatch on URL vs local path. `start`/`end` only apply to remote URLs."""
     if "://" in source:
-        return remote(source, out_dir)
+        return remote(source, out_dir, start=start, end=end)
     return local(source)
 
 

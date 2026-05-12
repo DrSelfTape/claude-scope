@@ -122,25 +122,48 @@ def run(args: argparse.Namespace) -> int:
         work_dir = tmp_root / uuid.uuid4().hex[:10]
         work_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1) Download or probe local file.
-    dl = download_mod.fetch(args.source, str(work_dir / "media"))
+    # 1) Download or probe local file. Windowed runs pass start/end to yt-dlp's
+    #    --download-sections so we only fetch the requested slice.
+    dl = download_mod.fetch(args.source, str(work_dir / "media"),
+                            start=start, end=end)
 
-    # 2) Chapters.
+    # If we downloaded a slice, the local file's timestamps run from 0 but the
+    # user expects original-video coordinates in the output. Shift frames after
+    # extraction (transcript VTT keeps original timestamps natively).
+    window_offset = dl.window_start or 0.0
+    windowed = dl.window_start is not None or dl.window_end is not None
+
+    # 2) Chapters. On a windowed run we just synthesize one chapter spanning the
+    #    requested slice — segmenting a 3-minute window into sub-chapters isn't
+    #    useful, and silence detection on a slice loses the original boundaries.
     if args.no_chapters:
         chapter_list, chapter_source = [], "skipped"
+    elif windowed:
+        win_start = window_offset
+        win_end = dl.window_end if dl.window_end is not None else window_offset + dl.duration
+        chapter_list = [chapters_mod.Chapter(
+            start=win_start, end=win_end, title=f"Window {win_start:.0f}-{win_end:.0f}s",
+        )]
+        chapter_source = "window"
     else:
         chapter_list, chapter_source = chapters_mod.detect(
             dl.info_json_path, dl.video_path, dl.duration,
         )
 
-    # 3) Frames.
+    # 3) Frames. The local file IS the window when windowed, so don't re-clip.
     frame_list = frames_mod.extract(
         dl.video_path, str(work_dir / "frames"),
         scene_threshold=scene_threshold,
         max_frames=max_frames,
         width=resolution,
-        start=start, end=end,
+        start=None if windowed else start,
+        end=None if windowed else end,
     )
+
+    # Shift frame timestamps into original-video coordinates.
+    if window_offset:
+        for f in frame_list:
+            f.t_seconds += window_offset
 
     # 4) OCR.
     ocr_results = []
@@ -155,7 +178,15 @@ def run(args: argparse.Namespace) -> int:
         allow_whisper=args.whisper != "off",
     )
 
-    # If user gave us a window, clip the transcript to it for compactness.
+    # Whisper on a windowed clip emits slice-relative timestamps; shift those.
+    # VTT captions downloaded by yt-dlp keep original-video timestamps even
+    # under --download-sections, so don't shift those.
+    if window_offset and transcript_source != "vtt":
+        for l in transcript_lines:
+            l.start += window_offset
+
+    # Clip transcript to the window for compactness (works for both VTT and
+    # already-shifted Whisper output, both now in original-video coords).
     if start is not None or end is not None:
         s = start if start is not None else 0
         e = end if end is not None else float("inf")
@@ -180,7 +211,12 @@ def _emit_human(work_dir, dl, mode, chapter_list, chapter_source,
     print(f"source: {dl.video_path}")
     if dl.title:
         print(f"title: {dl.title}")
-    print(f"duration: {dl.duration:.1f}s")
+    if dl.window_start is not None or dl.window_end is not None:
+        ws = dl.window_start or 0.0
+        we = dl.window_end if dl.window_end is not None else ws + dl.duration
+        print(f"duration: {dl.duration:.1f}s (window {ws:.0f}s-{we:.0f}s of original)")
+    else:
+        print(f"duration: {dl.duration:.1f}s")
     print(f"mode: {mode.name}")
     print()
 
