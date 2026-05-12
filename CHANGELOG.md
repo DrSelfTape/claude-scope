@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2 — 2026-05-12
+
+- Chapter detection no longer degrades to a single "Full video" block on tightly
+  edited talking-head content. `from_silence` now retries with progressively
+  looser thresholds (-35dB/2.0s → -30dB/1.2s → -25dB/0.8s) before giving up,
+  and a new `from_even_split` source kicks in as the final fallback so
+  summarize/lecture modes always get usable structure.
+
 ## 0.1.1 — 2026-05-12
 
 - Fix hooks.json schema (wrap events in top-level `hooks` record so Claude Code's loader accepts them)

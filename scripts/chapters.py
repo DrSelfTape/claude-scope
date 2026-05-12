@@ -4,7 +4,7 @@ Brad's skill prints a "sparse scan" warning when a video is over 10 minutes and
 calls it a day. That's the right diagnosis but the wrong fix. The real fix:
 detect the structure of the video and analyze each chapter on its own terms.
 
-Three sources, in order of reliability:
+Four sources, in order of reliability:
 
 1. **yt-dlp metadata** — many YouTube creators set explicit chapters via
    description timestamps; yt-dlp extracts them into `info.json["chapters"]`.
@@ -16,7 +16,13 @@ Three sources, in order of reliability:
 
 3. **Silence-based segmentation** — for screen recordings, local files, and
    anything without metadata. We use ffmpeg's `silencedetect` filter to find
-   long pauses (>2s of silence), then treat those as scene/topic boundaries.
+   long pauses, retrying with progressively looser thresholds for tightly
+   edited talking-head videos.
+
+4. **Even-time split** — last resort when nothing else yields signal (heavily
+   edited videos with no metadata and no silences). Divides the video into
+   roughly equal segments so downstream summarize/lecture analysis still has
+   structure to anchor against.
 
 The result is a list of Chapter objects with start/end timestamps and a title.
 Downstream code uses these to scope frame extraction and to drive
@@ -143,38 +149,49 @@ def from_description(description: str, total_duration: float) -> list[Chapter]:
 _SILENCE_END = re.compile(r"silence_end:\s*([\d.]+)")
 
 
+_SILENCE_PASSES = [
+    # (silence_db, min_silence_s) — tried in order until we get boundaries.
+    (-35, 2.0),  # default: clear pauses in normally-spoken content
+    (-30, 1.2),  # looser: tighter-edited podcast/long-form
+    (-25, 0.8),  # loosest: rapid-cut talking-head / vlog
+]
+
+
 def from_silence(
     video_path: str,
     total_duration: float,
-    min_silence_s: float = 2.0,
-    silence_db: int = -35,
     target_chapters: int = 8,
 ) -> list[Chapter]:
     """Detect long silences in the audio track and treat them as topic boundaries.
 
-    Conservative: we only split when the resulting chunks would be at least 30s
-    long. For very short videos this just returns a single chapter.
+    Retries with progressively looser thresholds before giving up. Returns []
+    when no boundaries are found at any threshold — callers should fall back
+    to even-time-splitting.
     """
     if total_duration < 60:
         return [Chapter(start=0, end=total_duration, title="Full video")]
 
-    cmd = [
-        "ffmpeg", "-hide_banner", "-i", video_path,
-        "-af", f"silencedetect=noise={silence_db}dB:d={min_silence_s}",
-        "-f", "null", "-",
-    ]
-    proc = _run(cmd)
     boundaries: list[float] = []
-    for line in proc.stderr.splitlines():
-        m = _SILENCE_END.search(line)
-        if m:
-            try:
-                boundaries.append(float(m.group(1)))
-            except ValueError:
-                continue
+    for silence_db, min_silence_s in _SILENCE_PASSES:
+        cmd = [
+            "ffmpeg", "-hide_banner", "-i", video_path,
+            "-af", f"silencedetect=noise={silence_db}dB:d={min_silence_s}",
+            "-f", "null", "-",
+        ]
+        proc = _run(cmd)
+        boundaries = []
+        for line in proc.stderr.splitlines():
+            m = _SILENCE_END.search(line)
+            if m:
+                try:
+                    boundaries.append(float(m.group(1)))
+                except ValueError:
+                    continue
+        if boundaries:
+            break
 
     if not boundaries:
-        return [Chapter(start=0, end=total_duration, title="Full video")]
+        return []
 
     # Thin the boundary list to roughly target_chapters segments.
     if len(boundaries) > target_chapters - 1:
@@ -191,7 +208,30 @@ def from_silence(
                                        title=chapters[-1].title)
             continue
         chapters.append(Chapter(start=s, end=e, title=f"Segment {len(chapters) + 1}"))
-    return chapters or [Chapter(start=0, end=total_duration, title="Full video")]
+    return chapters
+
+
+# ---------- Source 4: even-time split (last resort) ----------
+
+def from_even_split(total_duration: float, target_seconds: float = 240.0,
+                    min_chapters: int = 3, max_chapters: int = 10) -> list[Chapter]:
+    """Last-resort: divide the video into roughly equal time chunks.
+
+    Used when no metadata, description, or silence signal is available.
+    Chapter titles are generic ("Segment N") — Claude's downstream prompt is
+    expected to relabel them from the transcript.
+    """
+    if total_duration < 60:
+        return [Chapter(start=0, end=total_duration, title="Full video")]
+
+    n = max(min_chapters, min(max_chapters, round(total_duration / target_seconds)))
+    chunk = total_duration / n
+    return [
+        Chapter(start=i * chunk,
+                end=(i + 1) * chunk if i < n - 1 else total_duration,
+                title=f"Segment {i + 1}")
+        for i in range(n)
+    ]
 
 
 # ---------- Orchestrator ----------
@@ -222,7 +262,11 @@ def detect(
 
     # 3. Silence detection.
     chapters = from_silence(video_path, total_duration)
-    return chapters, "silence"
+    if chapters:
+        return chapters, "silence"
+
+    # 4. Even-time split (no signal available).
+    return from_even_split(total_duration), "even-split"
 
 
 def _cli() -> int:
