@@ -1,0 +1,19 @@
+# Build artifacts
+dist/
+*.skill
+*.pyc
+__pycache__/
+
+# Working directories
+.scope-work/
+tmp/
+
+# Environment
+.env
+.env.local
+*.local
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

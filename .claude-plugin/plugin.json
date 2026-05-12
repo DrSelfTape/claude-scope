@@ -1,0 +1,23 @@
+{
+  "name": "scope",
+  "version": "0.1.0",
+  "description": "Watch any video with Claude — scene-aware frames, chapter-aware long videos, opinionated analysis modes (hook, summarize, bug, creator, lecture).",
+  "author": "Joseph",
+  "license": "MIT",
+  "homepage": "https://github.com/yourname/claude-scope",
+  "commands": [
+    {
+      "name": "scope",
+      "file": "commands/scope.md"
+    }
+  ],
+  "skills": [
+    {
+      "name": "scope",
+      "file": "SKILL.md"
+    }
+  ],
+  "hooks": {
+    "file": "hooks/hooks.json"
+  }
+}
