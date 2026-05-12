@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 — 2026-05-12
+
+- Fix hooks.json schema (wrap events in top-level `hooks` record so Claude Code's loader accepts them)
+- Fix docs: scope.py is invoked directly (it has a python3 shebang), not via `bash`
+
 ## 0.1.0 — 2026-05-12
 
 Initial release.
