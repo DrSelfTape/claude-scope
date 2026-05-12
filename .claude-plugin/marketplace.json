@@ -1,11 +1,21 @@
 {
   "name": "claude-scope",
-  "description": "Scope out any video with Claude — frames, transcript, OCR, and opinionated analysis modes.",
+  "metadata": {
+    "description": "Scope out any video with Claude — scene-aware frames, chapter-aware long videos, opinionated analysis modes."
+  },
+  "owner": {
+    "name": "Joseph (DrSelfTape)"
+  },
   "plugins": [
     {
       "name": "scope",
-      "description": "Give Claude the ability to watch any video and analyze it with mode-specific prompts.",
-      "source": "."
+      "description": "Watch any video and analyze it — hook breakdown, summarize, bug diagnosis, creator analysis, or lecture concept map.",
+      "author": {
+        "name": "Joseph (DrSelfTape)"
+      },
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://github.com/DrSelfTape/claude-scope"
     }
   ]
 }
