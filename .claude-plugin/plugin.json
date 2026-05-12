@@ -2,22 +2,11 @@
   "name": "scope",
   "version": "0.1.0",
   "description": "Watch any video with Claude — scene-aware frames, chapter-aware long videos, opinionated analysis modes (hook, summarize, bug, creator, lecture).",
-  "author": "Joseph",
+  "author": {
+    "name": "Joseph (DrSelfTape)"
+  },
+  "homepage": "https://github.com/DrSelfTape/claude-scope",
+  "repository": "https://github.com/DrSelfTape/claude-scope",
   "license": "MIT",
-  "homepage": "https://github.com/yourname/claude-scope",
-  "commands": [
-    {
-      "name": "scope",
-      "file": "commands/scope.md"
-    }
-  ],
-  "skills": [
-    {
-      "name": "scope",
-      "file": "SKILL.md"
-    }
-  ],
-  "hooks": {
-    "file": "hooks/hooks.json"
-  }
+  "keywords": ["video", "watch", "scope", "youtube", "tiktok", "vimeo", "loom", "transcription", "whisper", "yt-dlp", "ffmpeg", "frames", "ocr", "multimodal"]
 }
