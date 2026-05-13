@@ -98,6 +98,7 @@ This is the money mode for content analysis. Output template:
 
 **Patterns to look for in retention tactics** (non-exhaustive):
 - **Dual-mode visual rhythm** — high-performing long-form often alternates two distinct visual modes (e.g., graded/emotional talking-head vs. clean/informational slides) on each concept beat. The mode-flip itself acts as the pattern interrupt; no jump cuts needed.
+- **Authority stacking** — strong claims get 4 *named* authority signals in a 30-second window, not 1: named customer + named end-user + named source + specific number. ("Reed Smith" beats "a law firm"; "six times" beats "faster"). Density is the move.
 - **Comparison matrix as positioning weapon** — a slide with the creator's offer as the only "green" row across multiple columns.
 - **Lead-magnet drip, not drop** — the same freebie named 3+ times across the video, tied to whatever step is being taught, instead of mentioned once at the end.
 - **Word-by-word kinetic captions** — first sentence chunked and slammed in over the talking head, so muted scrollers still get the hook.
