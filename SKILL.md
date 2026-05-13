@@ -96,6 +96,13 @@ This is the money mode for content analysis. Output template:
 **What to steal:** [3 transferable moves]
 ```
 
+**Patterns to look for in retention tactics** (non-exhaustive):
+- **Dual-mode visual rhythm** — high-performing long-form often alternates two distinct visual modes (e.g., graded/emotional talking-head vs. clean/informational slides) on each concept beat. The mode-flip itself acts as the pattern interrupt; no jump cuts needed.
+- **Comparison matrix as positioning weapon** — a slide with the creator's offer as the only "green" row across multiple columns.
+- **Lead-magnet drip, not drop** — the same freebie named 3+ times across the video, tied to whatever step is being taught, instead of mentioned once at the end.
+- **Word-by-word kinetic captions** — first sentence chunked and slammed in over the talking head, so muted scrollers still get the hook.
+- **Tone-flip cuts** — dark/busy visual for the problem, white-flash to clean/sparse visual on the pivot.
+
 ### `lecture`
 Output template:
 
@@ -127,8 +134,9 @@ Output template:
 ## Workflow Claude should follow
 
 1. Parse the user's message: pull out the URL/path, infer the mode, extract any time window they mentioned ("around 2:30" → `--start 2:15 --end 2:45`).
-2. Run `scripts/scope.py` with the inferred args.
-3. The script prints a block like:
+2. **Decide if you need full coverage.** For videos > ~10 min, if the user's question is about a specific section ("what does she say about pricing", "break down the hook", "what happens around 2:30"), pass `--start`/`--end` — since 0.1.4 this constrains the yt-dlp download itself, so a 3-min slice of a 4-hour video fetches in seconds. Only scan the full video when the user explicitly wants full coverage (summarize, creator analysis, full lecture concept map). When unsure, ask: *"Which part of the video should I focus on?"* — better than committing to a multi-minute pipeline run. `hook` and `bug` modes already self-window so they don't need this.
+3. Run `scripts/scope.py` with the inferred args.
+4. The script prints a block like:
 
    ```
    === scope output ===
@@ -151,14 +159,14 @@ Output template:
    === end scope output ===
    ```
 
-4. `Read` every frame path printed. Each is a JPEG — Claude renders these directly as images.
-5. Write the answer using the mode's `prompt_template`. Be grounded — when you cite a moment, include the timestamp.
-6. After answering, if the user is unlikely to follow up, delete the `working_dir` (the script doesn't auto-delete to support follow-ups).
+5. `Read` every frame path printed. Each is a JPEG — Claude renders these directly as images. Frame timestamps are always in original-video coordinates, even on windowed runs (the slice gets fetched at offset, but display timestamps are shifted back).
+6. Write the answer using the mode's `prompt_template`. Be grounded — when you cite a moment, include the timestamp.
+7. After answering, if the user is unlikely to follow up, delete the `working_dir` (the script doesn't auto-delete to support follow-ups).
 
 ## Constraints
 
 - **Frames dominate token cost.** Default cap is 100 frames; modes adjust this down. Don't override upward unless the user explicitly asks for more detail.
-- **Long videos** (>10 min) without chapters get a "sparse scan" warning. When you see this, suggest the user re-run with `--mode summarize` (chapter-aware) or a focused `--start`/`--end`.
+- **Long videos** (>10 min) are best handled either by `--mode summarize` (chapter-aware, subdivides long stretches) or by `--start`/`--end` to scope a section. Since 0.1.4, windowed runs download only the slice, so even a 4-hour source resolves in seconds when you pick a 3-min window.
 - **Whisper has a 25 MB upload cap.** That's ~50 min of mono 16 kHz audio. The script splits longer audio, but if you see a transcription failure, fall back to chapters + frames only.
 - **No private platforms.** No auth. If yt-dlp can't reach the URL anonymously, neither can scope.
 - **Cite by timestamp.** Every claim about what's in the video should come with a `[MM:SS]` so the user can verify.
