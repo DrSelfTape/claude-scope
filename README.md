@@ -2,7 +2,7 @@
 
 Hand Claude a video URL or local path, ask a question, get an answer grounded in frames *and* transcript. Built for Claude Code as a `/scope` slash command.
 
-**Latest: [v0.1.5](https://github.com/DrSelfTape/claude-scope/releases/tag/v0.1.5)** — SKILL.md playbook upgrades: Claude now decides windowing before running on long videos, knows frame timestamps stay in original-video coordinates on windowed runs, and has a creator-mode pattern library (dual-mode visual rhythm, comparison-matrix positioning, lead-magnet drip, kinetic captions, tone-flip cuts). See [CHANGELOG.md](CHANGELOG.md).
+**Latest: [v0.1.6](https://github.com/DrSelfTape/claude-scope/releases/tag/v0.1.6)** — Adds **authority stacking** to the creator-mode pattern library: watch for major claims backed by 4 named signals in a 30-second window (named customer + named end-user + named source + specific number) instead of just 1. See [CHANGELOG.md](CHANGELOG.md).
 
 ```
 /scope https://youtu.be/<id> what's the hook?
