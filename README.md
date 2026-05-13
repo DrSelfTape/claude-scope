@@ -2,6 +2,8 @@
 
 Hand Claude a video URL or local path, ask a question, get an answer grounded in frames *and* transcript. Built for Claude Code as a `/scope` slash command.
 
+**Latest: [v0.1.4](https://github.com/DrSelfTape/claude-scope/releases/tag/v0.1.4)** — `--start` / `--end` now constrain the yt-dlp download itself, so scoping a 3-minute slice of a 4-hour video fetches in seconds instead of minutes. Plus chapter-detection fixes for tightly edited talking-head content. See [CHANGELOG.md](CHANGELOG.md).
+
 ```
 /scope https://youtu.be/<id> what's the hook?
 /scope https://youtu.be/<id> summarize this
@@ -125,7 +127,7 @@ claude-scope/
 
 ## Limits
 
-- **Best accuracy under 10 minutes.** Past that, use `--mode summarize` (chapter-aware) or `--start`/`--end` to scope a window.
+- **Best accuracy under 10 minutes.** Past that, use `--mode summarize` (chapter-aware) or `--start`/`--end` to scope a window. Since 0.1.4, `--start`/`--end` triggers a partial download via yt-dlp's `--download-sections`, so windowed scoping on multi-hour videos is fast.
 - **Frame ceiling: 100.** Hard cap, even when scene detection finds more.
 - **Whisper upload cap: 25 MB.** ~50 min of mono 16 kHz audio. For longer transcription-required videos, use chapters + frames only.
 - **No private platforms.** Public URLs or local files. If yt-dlp can't reach it anonymously, neither can scope.
