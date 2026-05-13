@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.5 — 2026-05-12
+
+- SKILL.md upgrades — Claude now reads, on every `/scope` call:
+  - A pre-run windowing decision step (default to `--start`/`--end` on long
+    videos when the question is about a specific section).
+  - A note that frame timestamps stay in original-video coordinates on
+    windowed runs.
+  - A creator-mode "patterns to look for" list: dual-mode visual rhythm,
+    comparison-matrix positioning, lead-magnet drip, kinetic captions,
+    tone-flip cuts.
+
 ## 0.1.4 — 2026-05-12
 
 - `--start` and `--end` now also constrain the yt-dlp download via
