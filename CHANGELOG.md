@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.7 — 2026-05-12
+
+- Use yt-dlp's native `inf` for open-ended `--download-sections` ranges
+  instead of a magic `99999` sentinel. Verified against yt-dlp source via
+  Context7 MCP — no behavior change.
+
 ## 0.1.6 — 2026-05-12
 
 - Add **authority stacking** to the creator-mode pattern library in SKILL.md.
