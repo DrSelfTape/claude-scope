@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.6 — 2026-05-12
+
+- Add **authority stacking** to the creator-mode pattern library in SKILL.md.
+  When analyzing a video, look for claims backed by 4 named signals in a
+  30s window (named customer + named end-user + named source + specific
+  number) instead of 1.
+
 ## 0.1.5 — 2026-05-12
 
 - SKILL.md upgrades — Claude now reads, on every `/scope` call:
