@@ -77,10 +77,7 @@ def remote(url: str, out_dir: str,
 
     if start is not None or end is not None:
         s = max(0.0, start if start is not None else 0.0)
-        # yt-dlp accepts open-ended ranges via "*START-inf" — but the safer form
-        # is to always specify both ends, so default end to a very large number
-        # when None.
-        e = end if end is not None else 99999.0
+        e = end if end is not None else "inf"
         cmd += ["--download-sections", f"*{s}-{e}", "--force-keyframes-at-cuts"]
 
     cmd.append(url)
