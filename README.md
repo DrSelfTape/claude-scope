@@ -2,7 +2,7 @@
 
 Hand Claude a video URL or local path, ask a question, get an answer grounded in frames *and* transcript. Built for Claude Code as a `/scope` slash command.
 
-**Latest: [v0.1.4](https://github.com/DrSelfTape/claude-scope/releases/tag/v0.1.4)** — `--start` / `--end` now constrain the yt-dlp download itself, so scoping a 3-minute slice of a 4-hour video fetches in seconds instead of minutes. Plus chapter-detection fixes for tightly edited talking-head content. See [CHANGELOG.md](CHANGELOG.md).
+**Latest: [v0.1.5](https://github.com/DrSelfTape/claude-scope/releases/tag/v0.1.5)** — SKILL.md playbook upgrades: Claude now decides windowing before running on long videos, knows frame timestamps stay in original-video coordinates on windowed runs, and has a creator-mode pattern library (dual-mode visual rhythm, comparison-matrix positioning, lead-magnet drip, kinetic captions, tone-flip cuts). See [CHANGELOG.md](CHANGELOG.md).
 
 ```
 /scope https://youtu.be/<id> what's the hook?
